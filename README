@@ -1,0 +1,14 @@
+To build this project you need cmake installed.
+
+Currently this project is not usefull, it is in build up mode
+
+1. Create a new folder called "build"
+	mkdir build
+2. Change folder to build
+	cd build
+3. Call CMake to generate the makefile
+	cmake -DCMAKE_TOOLCHAIN_FILE=../Toolchain-avr.gcc.cmake ..
+4. Build the project
+	make
+
+
