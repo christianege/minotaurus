@@ -1,0 +1,69 @@
+Source adopted from here:
+http://www.mikrocontroller.net/topic/12176
+
+Gerade Anfänger haben oft das Problem, das erstmal alles wunderbar
+läuft, aber plötzlich muß noch irgendwo gewartet werden.
+
+Und ruchzuck ist die Performance im Eimer, aber der MC soll doch noch
+so viele andere Sachen auch erledigen.
+
+Wie macht man das also, Warten ohne Rechenzeitverschwendung ?
+
+Eine mögliche Lösung ist der hier vorgestellte Scheduler.
+
+Das Programm wurde mit WINAVR auf einem ATMega8 compiliert und belegt
+etwa 900 Byte.
+
+In dem Zip-File ist die Beschreibung und alle Source-Files.
+
+Viel Spaß damit.
+
+
+Peter
+
+------------
+
+Nachtrag:
+
+So ein Scheduler hat natürlich auch seine Einschränkungen.
+
+Im Beispiel wird er alle 65536 Zyklen ausgeführt, d.h. die Main-Loop
+sollte in der Regel in dieser Zeit mindestens einmal durchlaufen worden
+sein. Dauert sie manchmal länger ist das meist auch kein Beinbruch.
+Exakte Zeiten, wie z.B. Uhrzeit+Datum, Frequenzmessung sollte man
+deshalb nicht im Scheduler sondern direkt im Timerinterrupt machen.
+
+
+Wichtig ist also voher eine grobe Abschätzung der maximalen und
+minimalen Zeitintervalle zu machen.
+Im Beispiel ist die minimale Zeit: 1 / (11,0592MHz  256  256) =
+5,9ms.
+Das ist relativ schnell (das Beispiel hat ja fast nichts zu tun),
+meistens sollten aber Zeiten von 100ms...500ms ausreichend sein.
+
+Die maximale Zeit ergibt sich daraus, daß der Delayzähler 16-Bittig
+ist, zu 65536 * 5,9ms = 6,4min.
+
+Im main.h kann der Delayzähler als 8-, 16- oder 32-Bittig festgelegt
+werden. Das hat dann Einfluß auf die Codegröße sowie die Größe der
+Liste im RAM.
+
+Für ein ordnungsgemäßes Funktionieren des Schedulers ist zu beachten,
+daß man auch versteckte Wartezeiten vermeiden sollte.
+Z.B. ist zu empfehlen, für die UART Sende- und Empfangspuffer
+anzulegen, die dann im UART-Interrupt gefüllt bzw. geleert werden.
+
+Das hängt aber immer auch von der konkreten Anwendung ab. Z.B. je 10
+Bytes bei 115200Baud im Pollingmode zu senden, dürfte kaum einen
+kritischen Zeitverbrauch bewirken.
+
+
+Ein Scheduler ist also auch kein Zaubermittel, aber für komplexe
+Zeitsteuerungen (z.B. Lichteffekte) fast unschlagbar einfach.
+
+
+Peter
+
+----
+
+
