@@ -1,0 +1,172 @@
+<HTML>
+<HEAD>
+  <!-- Created with AOLpress/2.0 -->
+  <TITLE>Scheduler / Zeitgeber</TITLE>
+</HEAD>
+<BODY BGCOLOR="#c0dcc0">
+<H2 ALIGN=Center>
+  Scheduler / Zeitgeber
+</H2>
+<H4>
+  Einleitung:
+</H4>
+<P>
+Oftmals sieht man viele Projekte, wo die Ressourcen eines MC weitestgehend
+brach liegen. Der Knackpunkt dabei ist da&szlig; irgendwo eine Wartezeit
+ben&ouml;tigt wird und damit schlagartig die Rechenleistung einbricht. Dann
+werden oft auch weitere MCs verwendet, obwohl ein MC bei besserer
+Programmstruktur alles zusammen erledigen k&ouml;nnte.
+<P>
+<H4>
+  L&ouml;sung:
+</H4>
+<P>
+Die einzige L&ouml;sung dieses Dilemmas ist es Wartezeiten zu vermeiden,
+d.h.:
+<P ALIGN=Center>
+<BIG><B><BIG>Warten ist verboten !!!</BIG></B></BIG>
+<P>
+Aber wie soll das gehen ?<BR>
+Eine Methode ist die Abfrage eines Zeitgebers im Vor&uuml;bergehen, z.B.
+eines Timers oder eines Registers, welches durch einen Timerinterrupt
+weitergez&auml;hlt wird, je nach der ben&ouml;tigten Verz&ouml;gerungszeit.
+Damit ist es m&ouml;glich, zwischen den einzelnen Abfragen, ob die Zeit
+abgelaufen ist, noch viele weitere Aufgaben zu erledigen. Dieses Konzept
+ist jedoch relativ starr, d.h. bei Erweiterungen sind teilweise erhebliche
+&Auml;nderungen am bestehenden Code notwendig.
+<P>
+Wesentlich komfortabler ist ein Scheduler, dem man einfach die zu erledigende
+Aufgabe und die dazugeh&ouml;rende Wartezeit &uuml;bergibt. Danach braucht
+man sich um nichts mehr zu k&uuml;mmern und kann sofort mit den anderen Aufgaben
+fortfahren.
+<P>
+<H4>
+  Der Scheduler:
+</H4>
+<P>
+Das ist der eigentliche Arbeitsknecht, f&uuml;r alle zeitabh&auml;ngigen
+Aufgaben. Sobald eine Aufgabe nicht sofort, sondern erst nach einer bestimmten
+Zeit zu erledigen ist, stellt man sie dort rein und fertig. Nach Ablauf der
+Zeit f&uuml;hrt sie der Scheduler selbstt&auml;tig aus.
+<P>
+Grob gesagt ist das ein zentraler Weckdienst, dem man Auftr&auml;ge
+&uuml;bermitteln kann. Man kann die Auftr&auml;ge aber auch widerrufen
+(entfernen), wenn sich durch den Programflu&szlig; inzwischen eine andere
+Situation ergeben hat.
+<P>
+Z.B. erwartet man innerhalb einer bestimmten Zeit weitere Daten von der UART
+und setzt f&uuml;r diese Zeit einen Timeout-Handler in den Scheduler. Kommen
+dann die Daten rechtzeitig, wird der Timerout-Handler einfach wieder entfernt.
+Ansonsten schl&auml;gt er zu und macht die n&ouml;tige Fehlerbehandlung.
+<P>
+Das Programm ist relativ komplex und schwer zu erkl&auml;ren. Es arbeitet
+mit einer verketteten Liste, in der alle Aufgaben, d.h. die Adresse der
+auszuf&uuml;hrenden Funktion und die Wartezeit gespeichert sind. Nach Ablauf
+der Zeit wird die Funktion ausgef&uuml;hrt und der entsprechende Eintrag
+wieder als frei markiert. Im Beispiel ist die maximale Anzahl m&ouml;glicher
+Eintr&auml;ge auf 10 festgelegt, was f&uuml;r die meisten Aufgaben ausreichend
+ist.
+<P>
+Original habe ich das Programm f&uuml;r einen 8051 geschrieben, deshalb sind
+noch die dort &uuml;blichen Speicherbereiche (code, idata, bit) zu finden.
+Im main.h werden sie f&uuml;r den AVR entsprechend umdefiniert.
+<P>
+Der Vorteil dieser Version ist, da&szlig; alle Eintr&auml;ge immer in die
+richtige Reihenfolge sortiert werden. Damit ist ein minimaler CPU-Zeit Verbrauch
+m&ouml;glich, ist keine Funktion auszuf&uuml;hren, wird nur ein einziges
+Z&auml;hlregister runtergez&auml;hlt.
+<P>
+Es gibt auch andere Versionen, die zwar einfacher aussehen, aber jedesmal
+den runtergez&auml;hlten Wert mit allen Eintr&auml;gen in der Liste vergleichen.
+Und wenn man dann eine Liste mit 100 Eintr&auml;gen anlegt, kann das ne ganze
+Menge CPU-Zeit kosten.
+<P>
+<H4>
+  Modulbeschreibung:
+</H4>
+<P>
+Das Programm ist in einzelne Module aufgeteilt. 
+<P>
+<UL>
+  <LI>
+    <A HREF="main.h">Main.h</A>
+</UL>
+<P>
+In diesem File sind alle Definitionen zusammengefa&szlig;t, wie z.B. die
+Anschlu&szlig;belegung, Quarztakt.
+<P>
+<UL>
+  <LI>
+    <A HREF="main.c">Main.c</A>
+</UL>
+<P>
+Das ist das Hauptprogramm mit den Unterprogrammen f&uuml;r die LED-Steuerung.
+Um die gleichzeitige Abarbeitung mehrerer Tasks zu verdeutlichen, wurde die
+Timerfunktion von LED0 f&uuml;r LED1 kopiert und LED2 als einfache
+An-Aus-Schaltung programmiert.
+<P>
+Timerfunktion:
+<P>
+Die LED wird durch einmaliges Dr&uuml;cken der Taste eingeschaltet und geht
+nach einer bestimten Zeit (10s) wieder aus (Treppenhausautomatik). Jedes
+weitere Dr&uuml;cken bewirkt, da&szlig; die Ablaufzeit von neuem beginnt.
+Wird dagegen die Taste 2 mal kurz hintereinander gedr&uuml;ckt (innerhalb
+0,8s) so geht die LED sofort aus.
+<P>
+Es sind also 2 Wartezeiten (10s und 0,8s) im Programmablauf notwendig. Diese
+werden dem Scheduler &uuml;bergeben und es entsteht keine unn&ouml;tige
+Ressourcenverschwendung des MCs, d.h. er kann noch viele weitere Aufgaben
+ausf&uuml;hren.
+<P>
+Die Doppeldruckerkennung erfolgt durch die Wartezeit 0,8s, nach der eine
+Funktion ausgef&uuml;hrt wird, die absolut nichts tut !<BR>
+Des R&auml;tsels L&ouml;sung, vor dem Einf&uuml;gen der 0,8s Wartezeit wird
+versucht, diese Funktion aus dem Scheduler zu entfernen. Gelingt das, dann
+ist sie noch nicht ausgef&uuml;hrt worden, d.h. seit dem letzten Tastendruck
+sind weniger als 0,8s vergangen.
+<P>
+<UL>
+  <LI>
+    <A HREF="tov0.c">Tov0.c</A>
+</UL>
+<P>
+Das ist der Timerinterrupt, der meine schon bekannte Routine zur
+Tastenentprellung (4-fach-Abfrage) enth&auml;lt, sowie den Timertakt f&uuml;r
+den Scheduler bereitstellt.
+<P>
+<UL>
+  <LI>
+    <A HREF="getkey.c">Getkey.c</A>
+</UL>
+<P>
+Dieses Unterprogramm dient der Abfrage der entprellten Tasten. &Uuml;ber
+eine Maske kann man bestimmen, ob man nur eine Taste oder mehrere oder alle
+abfragen will.
+<P>
+&nbsp;
+<UL>
+  <LI>
+    <A HREF="schedule.c">Schedule.c</A>
+</UL>
+<P>
+Die Funktion timertick() wird zyklisch aufgerufen und f&uuml;hrt alle die
+Funktionen aus, deren Wartezeit abgelaufen ist. Timeradd( ) f&uuml;gt eine
+Funktion der Liste zu, timerremove( ) kann diese wieder entfernen, beide
+liefern den Wert 0 zur&uuml;ck, sobald sie erfolgreich waren. Dadurch kann
+man z.B. erkennen, ob eine Funktion noch nicht abgelaufen war, als sie entfernt
+wurde.
+<P>
+Und zu Beginn mu&szlig; der Listenspeicher mit timerinit() initialisiert
+werden.
+<P>
+<B>Wichtig ! </B>Besteht die M&ouml;glichkeit, da&szlig; eine Funktion mehrmals
+dem Scheduler hinzugef&uuml;gt wird, ist vorher zu versuchen sie zu entfernen,
+sonst kann es dazu kommen, da&szlig; diese Funktion mehrmals ausgef&uuml;hrt
+wird oder die maximale Anzahl der Eintr&auml;ge erreicht wird. Es kann
+nat&uuml;rlich in manchen F&auml;llen auch durchaus sinnvoll sein, da&szlig;
+eine Funktion mehrmals ausgef&uuml;hrt wird
+<P>
+<P>
+<P>
+<A HREF="http://www.specs.de/users/danni/"><IMG SRC="homeicon.gif"></A>
+</BODY></HTML>
