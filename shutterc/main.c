@@ -6,30 +6,56 @@
 
 /******************************	LED 0 Timer *****************************/
 
-void light0_off( void ){
-  LED_OUTPUT |= 1<<LED0;		// LED off (low active)
-}
-
-
-void light0_switch_off( void )		// dummy to detect double press
+void shutter_down_switch_off( void )	// dummy to detect double press
 {
 }
-
-
-void light0_on_off( void )
+void shutter_up_switch_off (void )		// dummy to detect double press
 {
-  if( (LED_OUTPUT & 1<<LED0) == 0 ){
-    if( timerremove( light0_switch_off ) ){
-      timeradd( light0_switch_off, SECONDS( 0.8 ) ); // wait for double press
-    }else{
-      light0_off();			// double press within 0.8sec
-      return;
+}	
+void shutter_stop(void)
+{
+	uart_puts("> power off \r");
+	PORTC &= ~((1<<PC5) | (1<<PC4)); /* set Pin 5 & 4 low, this disables power and release relais */
+}
+
+void enable_shutter_power(void)
+{
+	uart_puts("> power on \r");
+	PORTC |= (1<<PC5); /* set Pin 5 high, this enables power */
+}
+
+void shutter_down( void )
+{
+    if( timerremove( shutter_down_switch_off ) )
+	{
+      timeradd( shutter_down_switch_off, SECONDS( 0.5 ) ); // wait for double press
     }
-  }
-  LED_OUTPUT &= ~(1<<LED0);		// LED on (low active)
-  timerremove( light0_off );
-  timeradd( light0_off, SECONDS( 10 ) );	// start or start again
+	else
+	{
+      return; // double press within 0.5sec
+    }
+	uart_puts("> moving down!! \r");
+	PORTC |= (1<<PC4); /* set Pin 4 high, this enables direction */
+	timeradd(enable_shutter_power, SECONDS( 0.5 ));
+	timeradd(shutter_stop,SECONDS( 12));
 }
+
+void shutter_up( void )
+{
+    if( timerremove( shutter_up_switch_off ) )
+	{
+      timeradd( shutter_up_switch_off, SECONDS( 12.6 ) ); // wait for double press
+    }
+	else
+	{
+      return; // double press within 0.5sec
+    }
+	uart_puts("> moving up!! \r");
+	PORTC &= ~(1<<PC4); /* set Pin 4 high, this enables direction */
+	timeradd(enable_shutter_power, SECONDS( 0.5 ));
+	timeradd(shutter_stop,SECONDS( 12));
+}
+
 
 
 /******************************	LED 1 Timer *****************************/
@@ -105,15 +131,19 @@ uart_puts("-> Starting up .... \r");
     }
     if( get_key_press( 1<<PD3 ) )
     {
-	uart_puts("> PD3 pressed \r");
+		uart_puts("> PD3 pressed \r");
+		shutter_down(  );
     }
     if( get_key_press( 1<<PD4 ) )
     {
 	uart_puts("> PD4 pressed \r");
+	shutter_up(  );
     }
     if( get_key_press( 1<<PD5 ) )
     {
 	uart_puts("> PD5 pressed \r");
+	timerremove(shutter_stop);
+	shutter_stop();
     }
   }
 }
