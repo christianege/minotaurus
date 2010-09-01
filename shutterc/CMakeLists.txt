@@ -4,12 +4,12 @@ set ( SOURCES
        main.c
 )
 
-include_directories(${libscheduler_SOURCE_DIR})
+include_directories(${libscheduler_SOURCE_DIR} ${libuart_SOURCE_DIR})
 
 LINK_DIRECTORIES(${minotaurus_BINARY_DIR}/../lib)
 
 add_executable(shutterc  ${SOURCES})       
-target_link_libraries(shutterc scheduler )
+target_link_libraries(shutterc scheduler uart )
 
 set(AVR_OBJ_COPY /usr/bin/avr-objcopy )
 message(  ${CMAKE_PROJECT_NAME}  )

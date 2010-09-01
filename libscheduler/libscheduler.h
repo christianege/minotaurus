@@ -19,7 +19,7 @@ typedef void (code *funcp)(void);
 #define t_res		uint		// define time resolution 16 bit
 
 
-#define KEY_INPUT	PINC
+#define KEY_INPUT	PIND
 
 #define LED_OUTPUT	PORTB
 #define LED0		PB0
