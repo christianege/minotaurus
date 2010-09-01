@@ -1,2 +1,0 @@
-/usr/bin/avr-ar cr ../../lib/libuart.a  CMakeFiles/uart.dir/uart.c.obj
-/usr/bin/avr-ranlib ../../lib/libuart.a
