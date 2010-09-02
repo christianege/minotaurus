@@ -4,9 +4,8 @@
 #ifndef LIBSCHEDULER_20100902_H__
 #define LIBSCHEDULER_20100902_H__
 
-#define XTAL 11.0592e6
 
-#define TIMERTICK	(XTAL / 256 / 256)	// timer ticks per second
+#define TIMERTICK	(F_CPU / 256 / 256)	// timer ticks per second
 
 #define SECONDS(x)	((uint)(TIMERTICK * x + 0.5))
 
