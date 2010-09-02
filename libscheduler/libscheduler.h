@@ -1,6 +1,9 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 
+#ifndef LIBSCHEDULER_20100902_H__
+#define LIBSCHEDULER_20100902_H__
+
 #define XTAL 11.0592e6
 
 #define TIMERTICK	(XTAL / 256 / 256)	// timer ticks per second
@@ -21,13 +24,14 @@ typedef void (code *funcp)(void);
 
 #define KEY_INPUT	PIND
 
-#define LED_OUTPUT	PORTB
+/*
+ * #define LED_OUTPUT	PORTB
 #define LED0		PB0
 #define LED1		PB1
 #define LED2		PB2
 #define LED3		PB3
 #define LED4		PB4
-
+*/
 
 extern uchar key_state;		// debounced and inverted key state:
 				// bit = 1: key pressed
@@ -46,3 +50,4 @@ bit timerremove( funcp func );
 
 void timerinit(void);
 
+#endif /* LIBSCHEDULER_20100902_H__ */
