@@ -2,12 +2,12 @@ cmake_minimum_required(VERSION 2.6)
 
 set ( SOURCES 
        main.c
+	   shutter.c
 )
 
-include_directories(${libscheduler_SOURCE_DIR} ${libuart_SOURCE_DIR})
+include_directories(${libscheduler_SOURCE_DIR} ${libuart_SOURCE_DIR} .)
 
 LINK_DIRECTORIES(${minotaurus_BINARY_DIR}/../lib)
-
 add_executable(shutterc  ${SOURCES})       
 target_link_libraries(shutterc scheduler uart )
 

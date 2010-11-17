@@ -1,31 +1,11 @@
 #include "libscheduler.h"
 #include "libuart.h"
+#include "shutter.h"
 #include <stdio.h>
 
 /* 9600 baud */
 #define UART_BAUD_RATE      9600      
 
-
-// a. Deklaration der primitiven Ausgabefunktion
-int uart_putchar(char c, FILE *stream);
- 
-// b. Umleiten der Standardausgabe stdout (Teil 1)
-static FILE mystdout = FDEV_SETUP_STREAM( uart_putchar, NULL, _FDEV_SETUP_WRITE );
-
-
-// c. Definition der Ausgabefunktion
-int uart_putchar( char c, FILE *stream )
-{
-    if( c == '\n' )
-    {
-        uart_putc( '\r');
-    }
-    else
-   {
-     uart_putc(c);
-   }
-    return 0;
-}
 
 
 /******************************	LED 0 Timer *****************************/
@@ -66,23 +46,17 @@ void light1_off( void ){
 void light1_switch_off( void )		// dummy function
 {
 }
+static int uart_putchar(char c, FILE *stream);
 
+/* redirection of stdout ( part 1) */ 
+static FILE shutterstdout = FDEV_SETUP_STREAM(uart_putchar, NULL,_FDEV_SETUP_WRITE);
 
-void light1_on_off( void )
+/* dummy wrapper */
+static int uart_putchar(char c, FILE *stream)
 {
-  if( (LED_OUTPUT & 1<<LED1) == 0 ){
-    if( timerremove( light1_switch_off ) ){
-      timeradd( light1_switch_off, SECONDS( 0.8 ) );
-    }else{
-      light1_off();
-      return;
-    }
-  }
-  LED_OUTPUT &= ~(1<<LED1);
-  timerremove( light1_off );
-  timeradd( light1_off, SECONDS( 11 ) );
+	uart_putc(c);
+	return 0;
 }
-
 
 void initioports(void)
 {
@@ -120,26 +94,57 @@ int main( void )
 
   sei();
    // b. Umleiten der Standardausgabe stdout (Teil 2)
-   stdout = &mystdout;
+	key_state = 0;
+	key_press = 0;
+
+	TCCR0 = 1<<CS02;			//divide by 256 * 256
+	TIMSK = 1<<TOIE0;			//enable timer interrupt
+
+	initioports();
+
+	timerinit();
+	
+	/*
+	*  Initialize UART library, pass baudrate and AVR cpu clock
+	*  with the macro 
+	*  UART_BAUD_SELECT() (normal speed mode )
+	*  or 
+	*  UART_BAUD_SELECT_DOUBLE_SPEED() ( double speed mode)
+	*/
+    uart_init( UART_BAUD_SELECT(UART_BAUD_RATE,F_CPU) ); 
+
+	sei();
+
+	/* redirection of stdout to use printf over uart */
+	stdout = &shutterstdout;
 
 uart_puts("-> Starting up .... \r");
 
-  for(;;){				// main loop
-    if( f_timer_tick ){
-      f_timer_tick = 0;
-      timertick();
+  for(;;)
+  {				// main loop
+    if( f_timer_tick )
+	{
+		f_timer_tick = 0;
+		timertick();
     }
-    if( get_key_press( 1<<PD3 ) )
+  
+  	if( get_key_press( 1<<PD3 ) )
     {
-	uart_puts("> PD3 pressed \r");
+		uart_puts("> PD3 pressed \r");
+		shutter_down(  );
     }
-    if( get_key_press( 1<<PD4 ) )
+  
+  	if( get_key_press( 1<<PD4 ) )
     {
-	uart_puts("> PD4 pressed \r");
+		uart_puts("> PD4 pressed \r");
+		shutter_up(  );
     }
-    if( get_key_press( 1<<PD5 ) )
+  
+  	if( get_key_press( 1<<PD5 ) )
     {
-	uart_puts("> PD5 pressed \r");
+		uart_puts("> PD5 pressed \r");
+		timerremove(shutter_stop);
+		shutter_stop();
     }
   }
 }
