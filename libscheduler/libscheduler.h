@@ -20,17 +20,7 @@ typedef void (code *funcp)(void);
 //#define t_res		uchar		// define time resolution  8 bit
 #define t_res		uint		// define time resolution 16 bit
 
-
-#define KEY_INPUT	PIND
-
-
-#define LED_OUTPUT	PORTB
-#define LED0		PB0
-#define LED1		PB1
-#define LED2		PB2
-#define LED3		PB3
-#define LED4		PB4
-
+#define KEY_INPUT PIND
 
 extern uchar key_state;		// debounced and inverted key state:
 				// bit = 1: key pressed

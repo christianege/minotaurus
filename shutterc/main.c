@@ -1,51 +1,12 @@
 #include "libscheduler.h"
 #include "libuart.h"
 #include "shutter.h"
+
 #include <stdio.h>
 
 /* 9600 baud */
 #define UART_BAUD_RATE      9600      
 
-
-
-/******************************	LED 0 Timer *****************************/
-
-void light0_off( void ){
-  LED_OUTPUT |= 1<<LED0;		// LED off (low active)
-}
-
-
-void light0_switch_off( void )		// dummy to detect double press
-{
-}
-
-
-void light0_on_off( void )
-{
-  if( (LED_OUTPUT & 1<<LED0) == 0 ){
-    if( timerremove( light0_switch_off ) ){
-      timeradd( light0_switch_off, SECONDS( 0.8 ) ); // wait for double press
-    }else{
-      light0_off();			// double press within 0.8sec
-      return;
-    }
-  }
-  LED_OUTPUT &= ~(1<<LED0);		// LED on (low active)
-  timerremove( light0_off );
-  timeradd( light0_off, SECONDS( 10 ) );	// start or start again
-}
-
-
-/******************************	LED 1 Timer *****************************/
-
-void light1_off( void ){
-  LED_OUTPUT |= 1<<LED1;
-}
-
-
-void light1_switch_off( void )		// dummy function
-{
-}
 static int uart_putchar(char c, FILE *stream);
 
 /* redirection of stdout ( part 1) */ 
@@ -72,28 +33,6 @@ void initioports(void)
 
 int main( void )
 {
-  key_state = 0;
-  key_press = 0;
-
-  TCCR0 = 1<<CS02;			//divide by 256 * 256
-  TIMSK = 1<<TOIE0;			//enable timer interrupt
-
-
-   initioports();
-
-  timerinit();
-  /*
-   *  Initialize UART library, pass baudrate and AVR cpu clock
-   *  with the macro 
-   *  UART_BAUD_SELECT() (normal speed mode )
-   *  or 
-   *  UART_BAUD_SELECT_DOUBLE_SPEED() ( double speed mode)
-   */
-
-    uart_init( UART_BAUD_SELECT(UART_BAUD_RATE,F_CPU) ); 
-
-  sei();
-   // b. Umleiten der Standardausgabe stdout (Teil 2)
 	key_state = 0;
 	key_press = 0;
 
@@ -148,3 +87,4 @@ uart_puts("-> Starting up .... \r");
     }
   }
 }
+
