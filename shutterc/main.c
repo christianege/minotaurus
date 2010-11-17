@@ -1,8 +1,32 @@
 #include "libscheduler.h"
 #include "libuart.h"
+#include <stdio.h>
 
 /* 9600 baud */
 #define UART_BAUD_RATE      9600      
+
+
+// a. Deklaration der primitiven Ausgabefunktion
+int uart_putchar(char c, FILE *stream);
+ 
+// b. Umleiten der Standardausgabe stdout (Teil 1)
+static FILE mystdout = FDEV_SETUP_STREAM( uart_putchar, NULL, _FDEV_SETUP_WRITE );
+
+
+// c. Definition der Ausgabefunktion
+int uart_putchar( char c, FILE *stream )
+{
+    if( c == '\n' )
+    {
+        uart_putc( '\r');
+    }
+    else
+   {
+     uart_putc(c);
+   }
+    return 0;
+}
+
 
 /******************************	LED 0 Timer *****************************/
 
@@ -81,7 +105,7 @@ int main( void )
   TIMSK = 1<<TOIE0;			//enable timer interrupt
 
 
- initioports();
+   initioports();
 
   timerinit();
   /*
@@ -95,6 +119,8 @@ int main( void )
     uart_init( UART_BAUD_SELECT(UART_BAUD_RATE,F_CPU) ); 
 
   sei();
+   // b. Umleiten der Standardausgabe stdout (Teil 2)
+   stdout = &mystdout;
 
 uart_puts("-> Starting up .... \r");
 
