@@ -23,14 +23,14 @@ typedef void (code *funcp)(void);
 
 #define KEY_INPUT	PIND
 
-/*
- * #define LED_OUTPUT	PORTB
+
+#define LED_OUTPUT	PORTB
 #define LED0		PB0
 #define LED1		PB1
 #define LED2		PB2
 #define LED3		PB3
 #define LED4		PB4
-*/
+
 
 extern uchar key_state;		// debounced and inverted key state:
 				// bit = 1: key pressed
